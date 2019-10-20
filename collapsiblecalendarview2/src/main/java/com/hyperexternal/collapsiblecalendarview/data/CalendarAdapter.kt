@@ -130,10 +130,10 @@ class CalendarAdapter(val context: Context, cal: Calendar) {
             parent?.post {
                 val r = Rect()
                 txtDay.getHitRect(r)
-                r.top -= context.dipToPixels(15).toInt()
-                r.bottom += context.dipToPixels(15).toInt()
-                r.left -= context.dipToPixels(15).toInt()
-                r.right += context.dipToPixels(15).toInt()
+                r.top -= context.dipToPixels(20).toInt()
+                r.bottom += context.dipToPixels(20).toInt()
+                r.left -= context.dipToPixels(20).toInt()
+                r.right += context.dipToPixels(20).toInt()
                 parent.touchDelegate = TouchDelegate(r, txtDay)
             }
             val imgEventTag = view.findViewById<View>(R.id.img_event_tag) as ImageView

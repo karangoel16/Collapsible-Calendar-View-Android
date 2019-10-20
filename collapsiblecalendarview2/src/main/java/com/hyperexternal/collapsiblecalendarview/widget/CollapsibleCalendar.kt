@@ -5,14 +5,22 @@ package com.hyperexternal.collapsiblecalendarview.widget
  */
 
 
+import android.animation.Animator
+import android.animation.Animator.AnimatorListener
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
+import android.animation.TimeInterpolator
 import android.content.Context
 import android.graphics.Color
+import android.graphics.Rect
 import android.graphics.drawable.Drawable
 import android.os.Handler
 import android.util.AttributeSet
+import android.view.TouchDelegate
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.Animation
+import android.view.animation.AnimationSet
 import android.view.animation.Transformation
 import android.widget.LinearLayout
 import android.widget.TableLayout
@@ -23,10 +31,14 @@ import com.hyperexternal.collapsiblecalendarview.data.Day
 import com.hyperexternal.collapsiblecalendarview.data.Event
 import com.hyperexternal.collapsiblecalendarview.dipToPixels
 import com.hyperexternal.collapsiblecalendarview.view.ExpandIconView
+import com.hyperexternal.collapsiblecalendarview.widget.UICalendar.Companion.STATE_COLLAPSED
+import com.hyperexternal.collapsiblecalendarview.widget.UICalendar.Companion.STATE_EXPANDED
+import com.hyperexternal.collapsiblecalendarview.widget.UICalendar.Companion.STATE_PROCESSING
 import java.lang.Math.abs
 import java.text.DateFormatSymbols
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.collections.ArrayList
 
 
 class CollapsibleCalendar : UICalendar, View.OnClickListener {
@@ -39,11 +51,13 @@ class CollapsibleCalendar : UICalendar, View.OnClickListener {
         calenderAdapter.mEventList = mAdapter!!.mEventList
         calenderAdapter.setFirstDayOfWeek(firstDayOfWeek)
         val today = GregorianCalendar()
-//        this.selectedDay = Day(today.get(Calendar.YEAR), today.get(Calendar.MONTH), today.get(Calendar.DAY_OF_MONTH))
+        this.selectedDay = Day(today.get(Calendar.YEAR), today.get(Calendar.MONTH), today.get(Calendar.DAY_OF_MONTH))
         mCurrentWeekIndex = suitableRowIndex
         setAdapter(calenderAdapter)
         select(Day(today.get(Calendar.YEAR), today.get(Calendar.MONTH), today.get(Calendar.DAY_OF_MONTH)))
+
         mListener?.onTodayClick()
+
     }
 
     override fun onClick(view: View?) {
@@ -248,8 +262,12 @@ class CollapsibleCalendar : UICalendar, View.OnClickListener {
 
                 // set today's item
                 if (isToday(day)) {
-                        txtDay.setBackgroundDrawable(todayItemBackgroundDrawable)
-                        txtDay.setTextColor(todayItemTextColor)
+                    if(isSelectedDay(day)){
+                        txtDay.setBackgroundDrawable(selectedItemBackgroundDrawable)
+                        txtDay.setTextColor(selectedItemTextColor)
+                    }
+                    txtDay.setBackgroundDrawable(todayItemBackgroundDrawable)
+                    txtDay.setTextColor(todayItemTextColor)
                 }
 
                 // set the selected item
@@ -322,6 +340,16 @@ class CollapsibleCalendar : UICalendar, View.OnClickListener {
                         view.alpha = 0.3f
                     } else {
                         view.setOnClickListener { v -> onItemClicked(v, mAdapter.getItem(i)) }
+                        val parent = view.getParent() as View?
+                        parent?.post {
+                            val r = Rect()
+                            view.getHitRect(r)
+                            r.top -= context.dipToPixels(20).toInt()
+                            r.bottom += context.dipToPixels(20).toInt()
+                            r.left -= context.dipToPixels(20).toInt()
+                            r.right += context.dipToPixels(20).toInt()
+                            parent.touchDelegate = TouchDelegate(r, view)
+                        }
                     }
                 }
                 rowCurrent.addView(view)
@@ -457,9 +485,10 @@ class CollapsibleCalendar : UICalendar, View.OnClickListener {
     fun prevDay() {
         if (selectedItemPosition == 0) {
             prevMonth()
-            mAdapter!!.getView(mAdapter!!.count - 1).performClick()
             reload()
-            return;
+            mAdapter!!.getView(mAdapter!!.count - 1).performClick()
+            mCurrentWeekIndex = mTableBody.childCount -1
+            collapseTo(mCurrentWeekIndex)
         } else {
             mAdapter!!.getView(selectedItemPosition - 1).performClick()
             if (((selectedItemPosition - 1 + mAdapter!!.calendar.firstDayOfWeek) / 7) < mCurrentWeekIndex) {
@@ -551,6 +580,10 @@ class CollapsibleCalendar : UICalendar, View.OnClickListener {
                         mBtnNextWeek.isClickable = true
                     }
                 }
+
+                override fun willChangeBounds(): Boolean {
+                    return true
+                }
             }
             anim.duration = duration.toLong()
             startAnimation(anim)
@@ -576,10 +609,16 @@ class CollapsibleCalendar : UICalendar, View.OnClickListener {
             }
             val topHeight = tempHeight
 
+            val xTranslate = ObjectAnimator.ofInt(mScrollViewBody, "scrollX", 0)
+            val yTranslate = ObjectAnimator.ofInt(mScrollViewBody, "scrollY", topHeight)
+            val animators = AnimatorSet()
+            animators.playTogether(xTranslate, yTranslate);
+            animators.duration = ((targetHeight / context.getResources().getDisplayMetrics().density)).toLong();
+            animators.start()
             mScrollViewBody.layoutParams.height = targetHeight
             mScrollViewBody.requestLayout()
 
-            mHandler.post { mScrollViewBody.smoothScrollTo(0, topHeight) }
+            //mHandler.post { mScrollViewBody.smoothScrollTo(0, topHeight) }
 
 
             if (mListener != null) {
@@ -615,6 +654,10 @@ class CollapsibleCalendar : UICalendar, View.OnClickListener {
                         mBtnPrevMonth.isClickable = true
                         mBtnNextMonth.isClickable = true
                     }
+                }
+
+                override fun willChangeBounds(): Boolean {
+                    return true
                 }
             }
             anim.duration = duration.toLong()
