@@ -608,19 +608,19 @@ class CollapsibleCalendar : UICalendar, View.OnClickListener {
                 tempHeight += mTableBody.getChildAt(i).measuredHeight
             }
             val topHeight = tempHeight
-            mHandler.post {
-                mScrollViewBody.layoutParams.height = targetHeight
-                mScrollViewBody.requestLayout()
-                val xTranslate = ObjectAnimator.ofInt(mScrollViewBody, "scrollX", 0)
-                val yTranslate = ObjectAnimator.ofInt(mScrollViewBody, "scrollY", topHeight)
-                val animators = AnimatorSet()
-                animators.playTogether(xTranslate, yTranslate);
-                val temp = ((targetHeight / context.getResources().getDisplayMetrics().density)).toLong()
-                animators.duration = if (temp < 0) 500 else temp
-                animators.start()
-            }
+//            mHandler.post {
+//                val xTranslate = ObjectAnimator.ofInt(mScrollViewBody, "scrollX", 0)
+//                val yTranslate = ObjectAnimator.ofInt(mScrollViewBody, "scrollY", topHeight)
+//                val animators = AnimatorSet()
+//                animators.playTogether(xTranslate, yTranslate);
+//                val temp = ((targetHeight / context.getResources().getDisplayMetrics().density)).toLong()
+//                animators.duration = if (temp < 0) 500 else temp
+//                animators.start()
+//            }
 
-            //mHandler.post { mScrollViewBody.smoothScrollTo(0, topHeight) }
+            mScrollViewBody.layoutParams.height = targetHeight
+            mScrollViewBody.requestLayout()
+            mHandler.post { mScrollViewBody.smoothScrollTo(0, topHeight) }
 
 
             if (mListener != null) {
