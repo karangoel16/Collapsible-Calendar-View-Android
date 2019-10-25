@@ -155,4 +155,16 @@ class CalendarAdapter(val context: Context, cal: Calendar) {
             mViewList.add(view)
         }
     }
+
+    fun removeEvent(event: Event) {
+        mEventList.remove(event)
+    }
+
+    fun removeEvents(listEvent: List<Event>){
+        mEventList.removeAll(listEvent)
+    }
+
+    fun clearEvents(){
+        mEventList.clear()
+    }
 }

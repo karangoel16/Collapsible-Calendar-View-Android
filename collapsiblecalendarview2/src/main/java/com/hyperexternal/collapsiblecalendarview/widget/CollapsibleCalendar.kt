@@ -419,6 +419,30 @@ class CollapsibleCalendar : UICalendar, View.OnClickListener {
         reload()
     }
 
+    fun removeEventTag(numYear: Int, numMonth: Int, numDay: Int){
+        mAdapter!!.removeEvent(Event(numYear, numMonth, numDay, eventColor))
+        reload()
+    }
+
+    /**
+     * This removes a list of events from the event on the collapsable calendar layout
+     */
+    fun removeEventsTag(listEvents: List<Event>){
+        mAdapter?.removeEvents(listEvents)
+        reload()
+    }
+
+    /**
+     * Removes all the events from the events tag
+     */
+    fun clearAllEvents(){
+        mAdapter?.clearEvents()
+        reload()
+    }
+
+
+
+
     fun prevMonth() {
         val cal = mAdapter!!.calendar
         params.let {
