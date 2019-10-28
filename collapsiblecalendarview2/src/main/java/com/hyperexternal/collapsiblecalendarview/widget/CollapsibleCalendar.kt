@@ -41,7 +41,7 @@ import java.util.*
 import kotlin.collections.ArrayList
 
 
-class CollapsibleCalendar : UICalendar, View.OnClickListener {
+open class CollapsibleCalendar : UICalendar, View.OnClickListener {
     override fun changeToToday() {
         val calendar = Calendar.getInstance()
         val calenderAdapter = CalendarAdapter(context, calendar)
@@ -234,7 +234,6 @@ class CollapsibleCalendar : UICalendar, View.OnClickListener {
         mInitHeight = mTableBody.measuredHeight
 
         if (mIsWaitingForUpdate) {
-            redraw()
             mHandler.post { collapseTo(mCurrentWeekIndex) }
             mIsWaitingForUpdate = false
             if (mListener != null) {
@@ -650,6 +649,7 @@ class CollapsibleCalendar : UICalendar, View.OnClickListener {
             if (mListener != null) {
                 mListener!!.onWeekChange(mCurrentWeekIndex)
             }
+            redraw()
         }
     }
 
