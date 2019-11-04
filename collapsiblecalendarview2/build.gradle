@@ -3,6 +3,7 @@ apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-android'
 apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: 'maven'
+apply plugin: 'digital.wup.android-maven-publish'
 group = 'com.github.shrikanth7698'
 
 android {
@@ -10,6 +11,23 @@ android {
 
     kotlinOptions {
         jvmTarget = '1.8'
+    }
+
+    publishing {
+        publications {
+            mavenAar(MavenPublication) {
+                groupId 'com.microstrategy.m2020'
+                artifactId 'collapsibleCalendar'
+                version '1.0.0'
+                from components.android
+            }
+        }
+
+        repositories {
+            maven {
+                url "$buildDir/releases"
+            }
+        }
     }
 
     defaultConfig {
